@@ -2,7 +2,7 @@
 
 # Destription: simple cpu intensive example using Shell language
 # Example    : sh cpu_intensive.sh 4
-# Data       : Nov 15 2016
+# Date       : Nov 15 2016
 
 # the sequence to bind the cpu cores, default is 0,1,2,3
 cpu_sequence=("0x01" "0x02" "0x04" "0x08")
