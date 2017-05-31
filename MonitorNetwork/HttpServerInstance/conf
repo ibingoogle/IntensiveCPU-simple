@@ -1,3 +1,3 @@
 host=hadoop2master
 port=10002
-format=xml
+format=json
