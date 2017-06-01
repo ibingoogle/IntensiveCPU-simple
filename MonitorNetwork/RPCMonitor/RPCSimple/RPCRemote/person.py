@@ -6,4 +6,5 @@ import sys
 if sys.version_info < (3, 0):
 	input = raw_input
 
-class Person(object)
+# derived from object is the new feature of Python 3
+class Person(object):
