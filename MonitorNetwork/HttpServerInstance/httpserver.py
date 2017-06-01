@@ -1,3 +1,4 @@
+import urllib.parse
 import socket
 import re
 import json
@@ -5,6 +6,7 @@ import xmltodict
 import sys
 import os
 from threading import Thread
+#import commands
 
 
 
@@ -14,7 +16,7 @@ class HttpServer(Thread):
 	port = 80
 	conf = "/conf"
 	form = "xml"
-	post_content = {'user':'swang', 'a':'1', 'b':'2'}
+	post_content = {'user':['swang'], 'a':['1'], 'b':['2']}
 
 	def __init__(self):
 		Thread.__init__(self)
@@ -38,18 +40,31 @@ class HttpServer(Thread):
 			index = index + 1
 			# self.post_content['user'] = str(index)
 			# waiting to accept the request such as get/post/refresh browser
+			# conn is the establish connection, addr is the request address
 			conn, addr = self.sock.accept()			
-			# maximum number of requests waiting
-			request = conn.recv(1024)
+			# conn.recv() receives the information from client, 2048 represents the received length
+			request = conn.recv(2048)
+			# convert the received request into string
 			request_str = str(request, encoding="utf-8")
 			
-			print ('Connect by: ', addr)
-			print ('Request is:\n', request)
+			print ('Connect by: ', addr, '\n')
+			print ('Request_str is:\n', request, '\n')
+			# convert the received request into array
+			request_array = request_str.split("\r\n")
+			# extract the data in the request from the tail
+			request_data = request_array[len(request_array)-1]
+			# reverse the data into dict format
+			dict_data = urllib.parse.parse_qs(request_data)
+
+			# distinglish GET and POST command
+			if len(dict_data) > 0:
+				# dict_data contains something if it is POST(in this instance)
+				self.post_content = dict_data
 
 			# convert dict to json or xml form
 			content = self.convert_content(self.post_content)
 
-			print ("content = ", content)
+			print ("content = ", content, '\n')
 			conn.sendall(bytes(content, encoding="utf-8"))
 			# close connection
 			conn.close()
@@ -82,7 +97,8 @@ class HttpServer(Thread):
 		# add an root
 		dict_root = {}
 		dict_root['root'] = dict_content
-		converted_content = xmltodict.unparse(dict_root)
+		converted_content = xmltodict.unparse(dict_root, pretty=True)
+		print("converted_content = ", converted_content, '\n')
 		return converted_content	
 
 

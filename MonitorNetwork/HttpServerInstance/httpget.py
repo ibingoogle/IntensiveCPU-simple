@@ -16,7 +16,9 @@ class HttpGet:
 	def __init__(self):
 		self.load_conf()
 		self.url = "http://" + self.host + ":" + str(self.port)
-		self.Headers = {'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'}
+		#self.Headers = {'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'}
+		self.Headers = {'User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0'}
+		print(self.url)
 		#self.Headers = {"User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36"}
 
 	def load_conf(self):
@@ -45,13 +47,27 @@ class HttpGet:
 			response = urllib.request.urlopen(req)
 			read = response.read()
 			dict_read = json.loads(read)
-			#response.close()
+			response.close()
+			print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 		except http.client.HTTPException as exceptMessage:
 			dict_read = json.loads(str(exceptMessage))
+			print ("eeeeeeeeeeeeeeeeeeeeeeee")
 		return dict_read
 
-	def read_json_xml(self):
+	def read_xml_url(self):
 		dict_read = {}
+		try:
+			#req = urllib.request.Request(self.url, headers=self.Headers)
+			#response = urllib.request.urlopen(req)
+			response = urllib.request.urlopen(self.url)
+			print ("~~~~~~~~~~~~~~~~~")
+			order_dict_read = xmltodict.parse(response.read())
+			json_read = json.dumps(order_dict_read)
+			dict_read = json.loads(json_read)
+			response.close()
+		#except http.client.HTTPException as exceptMessage:
+		except urllib.error.HTTPError as e:
+			print("read url error: ", e)
 		return dict_read
 
 
