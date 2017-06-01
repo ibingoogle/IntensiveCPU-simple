@@ -1,4 +1,10 @@
 #!/bin/Python
+
+# warehouse.py is RPC server
+# run warehoust.py is the remote node (192.168.2.31)
+# the printed content is shown in the remote node
+
+
 from __future__ import print_function
 import Pyro4
 
@@ -20,3 +26,12 @@ class Warehouse(object):
 	def store(self, name, item):
 		self.contents.append(item)
 		print("{0} stored the {1}.".format(name, item))
+
+def main():
+	# locate the nameserver
+	Pyro4.naming.locateNS(host='192.168.2.32')
+	# set the proxy name(example.warehouse) of the class Warehouse, also set the remote node ip
+	Pyro4.Daemon.serveSimple({Warehouse:"example.warehouse"}, ns=True, host='192.168.2.31')
+
+if __name__=="__main__":
+	main()
