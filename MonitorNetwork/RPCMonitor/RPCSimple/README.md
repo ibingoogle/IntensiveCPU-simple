@@ -1,5 +1,4 @@
 #RPCSimple
 
-1. a simple RPC instance (the RPCRemote)
+a local example without RPC and an remote example with RPC
 
-2. based on Pyro4 library in Python
