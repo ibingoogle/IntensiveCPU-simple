@@ -34,11 +34,12 @@ class HttpPost:
 
 	def post(self):
 		try:
+			# convert the dict_data into string form, the data will be reversed in the http server
 			data = urllib.parse.urlencode(self.post_content)
 			data = data.encode("ascii")
+			# send POST command
 			req = urllib.request.Request(self.url,data)
 			response = urllib.request.urlopen(req)
-			print ("response = ", response.read())
 		except http.client.HTTPException as error:
 			print ("error: ", error)
 

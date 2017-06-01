@@ -37,10 +37,10 @@ class HttpGet:
 		if self.form == "json":
 			dict_read = self.read_json_url() # based on urllib.request.Request() and .urlopen(), using Headers
 		else:
-			dict_read = self.read_xml_url() # only using urllib.request.urlopen(), no Headers
+			dict_read = self.read_xml_url() # only using urllib.request.urlopen(), no Headers (not work, TBD)
 		print(dict_read)
 
-	def read_json_url(self):
+	def read_json_url(self): #(except happens, but still can get the data in exceptMessage)
 		dict_read = {}
 		try:
 			req = urllib.request.Request(self.url, headers=self.Headers)
@@ -48,13 +48,12 @@ class HttpGet:
 			read = response.read()
 			dict_read = json.loads(read)
 			response.close()
-			print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 		except http.client.HTTPException as exceptMessage:
 			dict_read = json.loads(str(exceptMessage))
-			print ("eeeeeeeeeeeeeeeeeeeeeeee")
+			print ("error")
 		return dict_read
 
-	def read_xml_url(self):
+	def read_xml_url(self): #(not work, TBD)
 		dict_read = {}
 		try:
 			#req = urllib.request.Request(self.url, headers=self.Headers)
