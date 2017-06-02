@@ -21,7 +21,6 @@ class HttpServer(Thread):
 	def __init__(self, mastermonitor):
 		Thread.__init__(self)
 		self.master_monitor = mastermonitor
-		self.record_pid()
 
 		self.host = ""
 		self.port = 80
@@ -35,8 +34,56 @@ class HttpServer(Thread):
 		self.sock.bind((self.host, self.port))
 		self.sock.listen(1)
 
-	def record_pid(self):
-		process
+	def start(self):
+		Thread.start(self)
+
+	def run(self):
+		index = 1
+		#infinite loop
+		while True:
+			index = index + 1
+			self.post_content = self.master_monitor.get_monitor()
+			# get connected socket and address
+			conn, addr = self.sock.accept()
+			request = conn.recv(1024)
+			request_str = str(request, encoding = "utf-8")
+
+			print ('Connect by: ', addr)
+			print ('Request_str is:\n', request_str)
+
+			content = self.convert_content(self.post_content)
+			print("content = ", content)
+			conn.sendall(bytes(content, encoding='utf-8'))
+			#close connection
+			conn.close()
+
+	def load_conf(self):
+		cur_path = sys.path[0]
+		try:
+			file = open(cur_path + self.conf, "r")
+			self.host = file.readline().strip("\n")
+			self.port = int(file.readline().strip("\n"))
+			self.form = file.readline().split("=")[1].strip("\n")
+		except (IOError,OSError) as error:
+			print("error during conf loading %s", error)
+			file.close()
+
+	def convert_content(self,post_content):
+		if self.form == "json":
+			converted_values = self.to_json(post_content)
+			return converted_values
+		converted_values = self.to_xml(post_content)
+		return converted_values
+
+	def to_json(self,Dict):
+		jdata = json.dumps(Dict)
+		return jdata
+
+	def to_xml(self,Dict):
+		root_Dict = {}
+		root_Dict['root'] = Dict
+		convertedxml = xmltodict.unparse(root_Dict);
+		return convertedxml
 
 class MasterMonitor(object):
 
@@ -124,6 +171,8 @@ if __name__=="__main__":
 	record_pid(cur_path)
 
 	mastermonitor = MasterMonitor(cur_path)
+	TheHttpServer = HttpServer(master_monitor)
+	TheHttpServer.start()
 
 	# since all RPC clients update the shared variable self.monitor, so we use instance mastermonitor in the RPC
 	RPCServer(mastermonitor)
