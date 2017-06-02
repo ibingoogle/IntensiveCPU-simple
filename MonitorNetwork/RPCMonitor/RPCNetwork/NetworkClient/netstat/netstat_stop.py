@@ -1,16 +1,14 @@
 #!/bin/python
-# each Iftop instance is an RPC client
-# the client keeps monitoring the network and reporting the result to RPC server at self.interval frequency
 
 import subprocess
 import sys
 
 try:
 	cur_path = sys.path[0]
-	file = open(cur_path + "/iftop_pid", "r")
+	file = open(cur_path + "/netstat_pid", "r")
 	pid = file.readline()
 except (IOError, OSError) as error:
-	print("error during iftop_pid file loading %s", error)
+	print("error during netstat_pid file loading %s", error)
 	file.close()
 
 print(pid)

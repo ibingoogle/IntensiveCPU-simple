@@ -6,7 +6,7 @@ import subprocess
 
 class Monitor:
 
-	monitor_type = "iftop"
+	monitor_type = "netstat"
 	cur_path = ""
 	client_abspath = "/home/hadoop0master/workspace/Python/RPC"
 	monitor_name = "NetworkMonitor"

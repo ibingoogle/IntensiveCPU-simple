@@ -1,5 +1,5 @@
 #!/bin/python
-# each Iftop instance is an RPC client
+# each netstat instance is an RPC client
 # the client keeps monitoring the network and reporting the result to RPC server at self.interval frequency
 
 from threading import Thread
@@ -10,27 +10,67 @@ import Pyro4
 import socket
 import os
 
-class Iftop(Thread):
+
+# two sub threads, one keep running netstat command, another keeps obtaining the latest netstat content
+class NetStat(Thread):
+
+	def __init__(self):
+		Thread.__init__(self)
+		self.is_netstat = True
+		self.command = "netstat -t"
+		self.content = []
+		self.interval = 0.5
+
+	def start(self):
+		self.is_netstat = True
+		Thread.start(self)
+
+	def run(self):
+		while self.is_netstat == True:
+			val = subprocess.Popen(self.command,shell=True,stdout=subprocess.PIPE)
+			val.wait()
+			self.content =  val.stdout.readlines()
+			time.sleep(self.interval)
+
+
+class Monitor(Thread):
 
 	def __init__(self, cur_path):
 		Thread.__init__(self)
+		self.netstat = NetStat()
 		# network command related parameters
-		self.is_iftop = True # whether keep monitoring
 		self.interval = 1
-		self.command = "sudo iftop -t -s " + str(self.interval) + " -B"
+		self.is_monitor = True
 
 		# cluster information
 		self.cluster_file = cur_path + "/cluster.txt"
+		# print(self.cluster_file)
 		self.cluster = []
 
 		# the network flow information between other nodes in the cluster and current node
-		self.content = [] # effective information extracted from the raw output of iftop command
-		self.flow_send = {} # more detailed information from self.content
+		self.content = []
+		self.flow_send = {}
 		self.flow_recv = {}
 
 		# get hostname and ip through socket
 		self.hostname = socket.getfqdn(socket.gethostname())
 		self.ip = socket.gethostbyname(self.hostname)
+
+	def start(self):
+		self.is_monitor = True
+		self.load_cluster()
+		self.netstat.start()
+		Thread.start(self)
+
+	def run(self):
+		mastermonitor = self.get_proxy()
+		while self.is_monitor == True:
+			return_content =  self.netstat.content
+			time.sleep(self.interval)
+			self.analysis_netstat(return_content)
+			self.load_flow()
+			mastermonitor.update_monitor(self.hostname, self.flow_send)
+			#mastermonitor.print_monitor()
 
 	# get the class/instance from RPC server, register RPC client and print current information
 	def register(self):
@@ -43,56 +83,6 @@ class Iftop(Thread):
 	def get_proxy(self):
 		mastermonitor = Pyro4.Proxy("PYRONAME:MasterMonitor")
 		return mastermonitor
-
-	def start(self):
-		self.is_iftop = True
-		self.load_cluster()
-		Thread.start(self)
-
-	def run(self):
-		i = 0
-		mastermonitor = self.get_proxy()
-		while self.is_iftop == True:
-			# execute the command and control the output of the command
-			val = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE)
-			val.wait()
-			# get the command output
-			return_content = val.stdout.readlines()
-			#print("return_content = \n", return_content)
-			#print("\n")
-			self.analysis_iftop(return_content)
-			#print("self.content = \n", self.content)
-			#print("\n")
-			self.load_flow()
-			# currently, we only update the flow_send in the RPC_server!!!!!!
-			mastermonitor.update_monitor(self.hostname, self.flow_send)
-			mastermonitor.print_monitor()
-			#self.print_flow_send()
-			#self.print_flow_recv()
-			print(i)
-			i = i + 1
-		
-
-	def analysis_iftop(self,content_inlines):
-		# analysis the output and extract the effective information			
-		self.content = []
-		Begin = False
-		End	  = False
-		for line in content_inlines:
-			if End == True:
-				break
-			str_line = str(line, encoding="utf-8").split("\n")[0]
-			#print("str_line = ", str_line)
-			if "---" in str_line:
-				if Begin == True:
-					End = True
-					Begin = False
-				else:
-					Begin = True
-				continue
-			if Begin == True:
-				self.content.append(str_line) # add effective information into self.content
-
 
 	# figure out the nodes in the cluster we need monitor
 	def load_cluster(self):
@@ -114,28 +104,38 @@ class Iftop(Thread):
 		return True
 
 
+	def analysis_netstat(self,content_inlines):
+		del self.content[:]
+		self.reset_flow()
+		for line in content_inlines:
+			#flow = line.split("\n")[0]
+			#print(line)
+			str_line = str(line, encoding="utf-8")
+			#print(str_line)
+			flow = str_line.split("\n")[0]
+			flow_splited = flow.split()
+			#print len(flow_splited)
+			sub_flow = []
+			if len(flow_splited) == 6:
+				for split in flow_splited:
+					sub_flow.append(split)
+					self.content.append(sub_flow)
+		print(self.content)
+
+
 	# load more detailed information from self.content
 	def load_flow(self):
-		self.reset_flow()
-		line_flag = -1
-		prev_line = ""
-		for line in self.content:
-			line_flag = line_flag + 1
-			if line_flag%2 == 0: # skip the line in even flag, but record it
-				prev_line = line
-				continue
-			line_splitted = line.split()
-			ForeignAddress = line_splitted[0] # the other node which communicate with current one
-			# analysis two lines one-time if the address is in the cluster
-			if self.belong_cluster(ForeignAddress) == True:
-				Send = prev_line.split()[3]
-				Recv = line_splitted[2]
-				# convert the flow unit info KB
-				Send_format = self.format_KB(Send)*2
-				Recv_format = self.format_KB(Recv)*2
-				# put the result into the dict
-				self.flow_send[ForeignAddress] = Send_format
-				self.flow_recv[ForeignAddress] = Recv_format
+		for sub_flow in self.content:
+			ForeignAddressIp = sub_flow[4].split(":")[0]
+			recv = sub_flow[1]
+			send = sub_flow[2]
+			if self.belong_cluster(ForeignAddressIp) == True:
+				current_recv = self.flow_recv[ForeignAddressIp]
+				current_send    = self.flow_send[ForeignAddressIp]
+				self.flow_recv[ForeignAddressIp] = current_recv + int(recv)
+				self.flow_send[ForeignAddressIp]    = current_send    + int(send)
+		self.print_flow_send()
+		self.print_flow_recv()
 
 	def belong_cluster(self,address):
 		if address in self.cluster:
@@ -148,16 +148,6 @@ class Iftop(Thread):
 		for key in self.flow_recv:
 			self.flow_recv[key] = 0
 
-	def format_KB(self, origin):
-		if "MB" in origin:
-			str_num = origin.split("MB")[0]
-			return float(str_num)*1024
-		elif "KB" in origin:
-			str_num = origin.split("KB")[0]
-			return float(str_num)
-		elif "B" in origin:
-			str_num = origin.split("B")[0]
-			return float(str_num)/1024
 
 	def print_flow_send(self):
 		print("flow_send_ssssssssssssssssssssssssss")
@@ -172,20 +162,19 @@ class Iftop(Thread):
 			print("send: ", self.flow_recv[key])
 
 
-
 def record_pid(cur_path):
 	process_id = os.getpid()
 	try:
-		file = open(cur_path + "/iftop_pid", "w")
+		file = open(cur_path + "/netstat_pid", "w")
 		file.write(str(process_id))
 	except (IOError, OSError) as error:
-		print("error during iftop_pid file loading %s", error)
+		print("error during netstat_pid file loading %s", error)
 	file.close()
 
 if __name__=="__main__":
 	cur_path = sys.path[0]
 	record_pid(cur_path)
 
-	TheIftop = Iftop(cur_path)
-	TheIftop.register()
-	TheIftop.start()
+	TheMonitor = Monitor(cur_path)
+	TheMonitor.register()
+	TheMonitor.start()
