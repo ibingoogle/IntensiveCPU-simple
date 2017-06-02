@@ -6,15 +6,17 @@ import socket
 class Deploy:
 
 	cur_path = ""
-	absolute_path = "/home/hadoop0master/workspace/Python/RPC"
+	client_abspath = "/home/hadoop0master/workspace/Python/RPC"
 	monitor_name = "NetworkMonitor"
 	client_name = "NetworkClient"
 	user_name = "hadoop0master"
+
+	slaves = []
+	master = ""
 	deploy_slave = "" #current deployed slave
 
 	def __init__(self):
 		self.cur_path = sys.path[0]
-		print(self.cur_path)
 		self.slaves = []
 		self.master = socket.getfqdn(socket.gethostname())
 		self.cluster_file = self.cur_path + "/cluster.txt"
@@ -41,13 +43,13 @@ class Deploy:
 			self.copy()
 
 	def refresh(self):
-		command_monitor = "ssh " + self.user_name + "@" + self.deploy_slave + " mkdir " + self.absolute_path + "/" + self.monitor_name + " 2>/dev/null"
+		command_monitor = "ssh " + self.user_name + "@" + self.deploy_slave + " mkdir " + self.client_abspath + "/" + self.monitor_name + " 2>/dev/null"
 		os.popen(command_monitor)
-		command_client = "ssh " + self.user_name + "@" + self.deploy_slave + " rm -rf " + self.absolute_path + "/" + self.monitor_name + "/" + self.client_name + " 2>/dev/null"
+		command_client = "ssh " + self.user_name + "@" + self.deploy_slave + " rm -rf " + self.client_abspath + "/" + self.monitor_name + "/" + self.client_name + " 2>/dev/null"
 		os.popen(command_client)
 
 	def copy(self):
-		command_copy = "scp -r " + self.cur_path + "/" + self.client_name + " " + self.user_name + "@" + self.deploy_slave + ":" + self.absolute_path + "/" + self.monitor_name
+		command_copy = "scp -r " + self.cur_path + "/" + self.client_name + " " + self.user_name + "@" + self.deploy_slave + ":" + self.client_abspath + "/" + self.monitor_name
 		os.popen(command_copy)
 
 
