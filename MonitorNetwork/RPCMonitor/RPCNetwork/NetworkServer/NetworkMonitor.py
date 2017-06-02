@@ -15,6 +15,29 @@ import xmltodict
 # the lock is used when multiple clients request the server
 mutex = threading.Lock()
 
+
+class HttpServer(Thread):
+
+	def __init__(self, mastermonitor):
+		Thread.__init__(self)
+		self.master_monitor = mastermonitor
+		self.record_pid()
+
+		self.host = ""
+		self.port = 80
+		self.conf = "/conf"
+		self.form = "xml"
+		self.post_content = {'user':'swang','a':'1','b':'2'}
+		self.load_conf()
+
+		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+		self.sock.bind((self.host, self.port))
+		self.sock.listen(1)
+
+	def record_pid(self):
+		process
+
 class MasterMonitor(object):
 
 	def __init__(self, cur_path):
