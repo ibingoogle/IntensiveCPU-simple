@@ -2,6 +2,7 @@
 import sys
 import os
 import socket
+import subprocess
 
 class Monitor:
 
@@ -40,16 +41,16 @@ class Monitor:
 		self.monitor_slaves()
 
 	def monitor_master(self):
-		command = "python " + self.cur_path + "/" + self.monitor_name + "/" + "NetworkMonitor.py"
-		print(command)
-		#os.system(command)
+		command = "python " + self.cur_path + "/NetworkServer/NetworkMonitor.py"
+		#print(command)
+		val = subprocess.Popen(command, shell=True) # do not use os.popen(), we need sub thread
 
 	def monitor_slaves(self):
 		for slave in self.slaves:
 			self.deploy_slave = slave
-			command = "ssh " + self.user_name + "@" + self.deploy_slave + " python " + self.client_abspath + "/" + self.monitor_name + "/" + self.client_name + "/" + self.monitor_type + "/" + self.monitor_type + "_monitor.py 2>/dev/null"
+			command = "ssh " + self.user_name + "@" + self.deploy_slave + " python " + self.client_abspath + "/" + self.monitor_name + "/" + self.client_name + "/" + self.monitor_type + "/" + self.monitor_type + "_monitor.py"
 			print(command)
-			#os.popen(command)
+			val = subprocess.Popen(command, shell=True) # do not use os.popen()
 
 if __name__=="__main__":
 

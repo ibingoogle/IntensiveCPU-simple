@@ -85,6 +85,7 @@ class HttpServer(Thread):
 		convertedxml = xmltodict.unparse(root_Dict);
 		return convertedxml
 
+@Pyro4.expose
 class MasterMonitor(object):
 
 	def __init__(self, cur_path):
@@ -160,7 +161,7 @@ if __name__=="__main__":
 	record_pid(cur_path)
 
 	mastermonitor = MasterMonitor(cur_path)
-	TheHttpServer = HttpServer(master_monitor)
+	TheHttpServer = HttpServer(mastermonitor)
 	TheHttpServer.start()
 
 	# since all RPC clients update the shared variable self.monitor, so we use instance mastermonitor in the RPC

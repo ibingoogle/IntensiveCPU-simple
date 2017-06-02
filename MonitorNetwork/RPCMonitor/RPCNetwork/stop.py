@@ -2,6 +2,7 @@
 import sys
 import os
 import socket
+import subprocess
 
 class Stop:
 
@@ -41,16 +42,16 @@ class Stop:
 
 
 	def stop_master(self):
-		command = "python " + self.cur_path + "/" + self.monitor_name + "/" + "NetworkMonitor_stop.py"
-		print(command)
-		#os.system(command)
+		command = "python " + self.cur_path + "/NetworkServer/NetworkMonitor_stop.py"
+		#print(command)
+		val = subprocess.Popen(command, shell=True)
 
 	def stop_slaves(self):
 		for slave in self.slaves:
 			self.deploy_slave = slave
 			command = "ssh " + self.user_name + "@" + self.deploy_slave + " python " + self.client_abspath + "/" + self.monitor_name + "/" + self.client_name + "/" + self.monitor_type + "/" + self.monitor_type + "_stop.py 2>/dev/null"
-			print(command)
-			#os.popen(command)
+			#print(command)
+			val = subprocess.Popen(command, shell=True)
 
 if __name__=="__main__":
 

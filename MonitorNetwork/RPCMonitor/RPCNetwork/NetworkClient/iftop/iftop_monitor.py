@@ -58,16 +58,22 @@ class Iftop(Thread):
 			val.wait()
 			# get the command output
 			return_content = val.stdout.readlines()
+			#print("return_content = \n", return_content)
+			#print("\n")
 			self.analysis_iftop(return_content)
+			#print("self.content = \n", self.content)
+			#print("\n")
 			self.load_flow()
 			# currently, we only update the flow_send in the RPC_server!!!!!!
 			mastermonitor.update_monitor(self.hostname, self.flow_send)
 			mastermonitor.print_monitor()
+			#self.print_flow_send()
+			#self.print_flow_recv()
 			print(i)
 			i = i + 1
 		
 
-	def analysis_iftop(content_inlines):
+	def analysis_iftop(self,content_inlines):
 		# analysis the output and extract the effective information			
 		self.content = []
 		Begin = False
@@ -76,12 +82,13 @@ class Iftop(Thread):
 			if End == True:
 				break
 			str_line = str(line, encoding="utf-8").split("\n")[0]
+			#print("str_line = ", str_line)
 			if "---" in str_line:
-				if Begin == True
+				if Begin == True:
 					End = True
 					Begin = False
 				else:
-					Begin = False
+					Begin = True
 				continue
 			if Begin == True:
 				self.content.append(str_line) # add effective information into self.content
@@ -101,9 +108,9 @@ class Iftop(Thread):
 				self.cluster.append(hostname)
 				self.flow_send[hostname] = 0
 				self.flow_recv[hostname] = 0
-			except (IOError, OSError) as error:
-				print("error during cluster_file loading %s", error)
-				return False
+		except (IOError, OSError) as error:
+			print("error during cluster_file loading %s", error)
+			return False
 		return True
 
 
@@ -142,13 +149,13 @@ class Iftop(Thread):
 			self.flow_recv[key] = 0
 
 	def format_KB(self, origin):
-		if "MB" in origin
+		if "MB" in origin:
 			str_num = origin.split("MB")[0]
 			return float(str_num)*1024
-		elif "KB" in origin
+		elif "KB" in origin:
 			str_num = origin.split("KB")[0]
 			return float(str_num)
-		elif "B" in origin
+		elif "B" in origin:
 			str_num = origin.split("B")[0]
 			return float(str_num)/1024
 
