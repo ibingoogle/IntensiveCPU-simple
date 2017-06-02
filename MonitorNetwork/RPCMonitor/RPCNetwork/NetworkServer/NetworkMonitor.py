@@ -61,8 +61,8 @@ class HttpServer(Thread):
 		cur_path = sys.path[0]
 		try:
 			file = open(cur_path + self.conf, "r")
-			self.host = file.readline().strip("\n")
-			self.port = int(file.readline().strip("\n"))
+			self.host = file.readline().split("=")[1].strip("\n")
+			self.port = int(file.readline().split("=")[1].strip("\n"))
 			self.form = file.readline().split("=")[1].strip("\n")
 		except (IOError,OSError) as error:
 			print("error during conf loading %s", error)

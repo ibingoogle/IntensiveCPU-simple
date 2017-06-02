@@ -1,0 +1,3 @@
+host=hadoop2master
+port=10011
+format=xml
