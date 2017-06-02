@@ -14,5 +14,5 @@ Generate jobs running on distributed clusters
 4.MonitorNetwork:
 Simlpe distributd network monitoring tool based on RPC and Http
 
-5.DistributedDeployment:
-Simple tool to deploy computing platform and its conf files in distributed cluster
+5.Deployment:
+Simple tool to deploy computing platform and its conf files in single node/distributed cluster
