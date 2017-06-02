@@ -91,17 +91,6 @@ class MasterMonitor(object):
 		self.slaves = [] # use array to store the registered slaves
 		self.monitor = {} # use dict to store the monitor result
 		self.cluster_file = cur_path + "/cluster.txt"
-		# self.load_cluster()
-
-	def load_cluster(self):
-		try:
-			file = open(self.cluster_file, "r")
-			lines = file.readlines()
-			for line in lines:
-				hostname = line.split("\n")[0]
-				self.monitor[hostname] = 0 # initialize the monitor result as zero
-		except (IOError,OSError) as error:
-			print("error during cluster_file loading %s", error)
 
 	def add_slave(self, slave):
 		if slave in self.slaves:

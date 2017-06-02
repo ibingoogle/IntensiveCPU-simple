@@ -1,6 +1,0 @@
-hadoop2slave1
-hadoop2slave2
-hadoop2slave3
-hadoop2slave4
-hadoop2slave5
-hadoop2slave6
