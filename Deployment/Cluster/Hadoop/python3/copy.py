@@ -1,6 +1,7 @@
 from version import HadoopVersion
 import os
 import sys
+import time
 
 class ClusterCopyConf:
 
@@ -30,6 +31,7 @@ class ClusterCopyConf:
 	def copy_conf(self,theVersion):
 		command_copy_gather = "scp " + self.conf_gather_src + " " + self.conf_gather_dest
 		os.popen(command_copy_gather)
+		time.sleep(1)
 		print (command_copy_gather)
 		for slave in theVersion.slaves:
 			theVersion.set_scatterprefix(slave)
@@ -37,6 +39,7 @@ class ClusterCopyConf:
 			command_copy_scatter = "scp " + self.conf_scatter_src + " " + self.conf_scatter_dest
 			print (command_copy_scatter)
 			os.popen(command_copy_scatter)
+			time.sleep(1)
 
 
 class ClusterCopyAll(ClusterCopyConf):
@@ -73,6 +76,7 @@ class ClusterCopyAll(ClusterCopyConf):
 		command_copy_gather = "scp " + self.pkg_gather_src + " " + self.pkg_gather_dest
 		print (command_copy_gather)
 		os.popen(command_copy_gather)
+		time.sleep(1)
 		self.gather_rm_extract()
 		for slave in theVersion.slaves:
 			theVersion.set_scatterprefix(slave)
@@ -80,6 +84,7 @@ class ClusterCopyAll(ClusterCopyConf):
 			command_copy_scatter = "scp " + self.pkg_scatter_src + " " + self.pkg_scatter_dest
 			print (command_copy_scatter)
 			os.popen(command_copy_scatter)
+			time.sleep(1)
 			self.scatter_rm_extract(theVersion)
 
 
@@ -87,17 +92,21 @@ class ClusterCopyAll(ClusterCopyConf):
 		command_rm_gather = "rm -rf " + self.hadooppath + " 2>/dev/null"
 		print (command_rm_gather)
 		os.popen(command_rm_gather)
+		time.sleep(1)
 		command_extract_gather = "tar zxf " + self.pkg_gather_dest + "/" + self.hadooppkgname
 		print (command_extract_gather)
 		os.popen(command_extract_gather)
+		time.sleep(1)
 
 	def scatter_rm_extract(self,theVersion):
-		command_rm_scatter = "ssh " + theVersion.scatterprefix[0:len(theVersion.scatterprefix)-1] + " rm -f " + theVersion.hadooppath + " 2>/dev/null"
+		command_rm_scatter = "ssh " + theVersion.scatterprefix[0:len(theVersion.scatterprefix)-1] + " rm -rf " + theVersion.hadooppath + " 2>/dev/null"
 		print (command_rm_scatter)
 		os.popen(command_rm_scatter)
+		time.sleep(1)
 		command_extract_scatter = "ssh " + theVersion.scatterprefix[0:len(theVersion.scatterprefix)-1] + " tar zxf " + theVersion.modulepath + "/" + theVersion.hadooppkgname + " -C " + theVersion.modulepath + "/"
 		print (command_extract_scatter)
 		os.popen(command_extract_scatter)
+		time.sleep(1)
 
 
 def check_args(argv):

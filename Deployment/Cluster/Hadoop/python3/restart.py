@@ -1,7 +1,7 @@
 from version import HadoopVersion
 from stop import ClusterStop
 from start import ClusterStart
-from copy import ClusterCopyConf
+from copy import ClusterCopyAll
 import os
 import sys
 import re
@@ -11,17 +11,21 @@ class ClusterRestart:
 	def __init__(self):
 		self.theStart = ClusterStart()
 		self.theStop = ClusterStop()
-		self.theCopyConf = ClusterCopyConf()
+		self.theCopyAll = ClusterCopyAll()
 		return
 
 	def set_shells(self,theVersion):
-		self.theCopyConf.set_conf_gather(theVersion)
+		self.theCopyAll.set_conf_gather(theVersion)
+		self.theCopyAll.set_pkg_gather(theVersion)
 		self.theStart.set_shells(theVersion)
 		self.theStop.set_shells(theVersion)
 
 	def copy(self,copyresult,theVersion):
 		if copyresult == "conf":
-			self.theCopyConf.copy_conf(theVersion)
+			self.theCopyAll.copy_conf(theVersion)
+		if copyresult == "all":
+			self.theCopyAll.copy_pkg(theVersion)
+			self.theCopyAll.copy_conf(theVersion)
 
 	def restart_hdfs(self,copyresult,theVersion):
 		self.theStop.stop_hdfs()
@@ -47,6 +51,9 @@ def check_args(argv):
 		if len(argv) == 2 and argv[1] == "conf":
 			result.append(argv[1])
 			return result
+		if len(argv) == 2 and argv[1] == "all":
+			result.append(argv[1])
+			return result
 	print_usage()
 	sys.exit(2)
 
@@ -54,7 +61,7 @@ def print_usage():
 	print ("restart.sh - tool for")
 	print ("restart start/stop commands HADOOP_HOME/sbin")
 	print ("usage:")
-	options="all/hdfs/yarn [conf]"
+	options="all/hdfs/yarn [conf/all]"
 	print ("./restart.sh", options)
 
 if __name__ == "__main__":
