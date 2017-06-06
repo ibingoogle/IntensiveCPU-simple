@@ -1,4 +1,4 @@
-1. load tar.gz package
+1. load .tgz package
 
 2. load conf files
 
