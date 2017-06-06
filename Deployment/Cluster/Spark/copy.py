@@ -55,7 +55,7 @@ class ClusterCopyAll(ClusterCopyConf):
 	def set_pkg_gather(self,theVersion):
 		self.pkg_gather_src = theVersion.gatherprefix + theVersion.sparkpkgpath + "/*." + theVersion.suffix
 		self.pkg_gather_dest = theVersion.modulepath
-		self.sparkdirname = theVersion.sparkpath
+		self.sparkpath = theVersion.sparkpath
 		self.sparkpkgname = theVersion.sparkpkgname
 
 	def set_pkg_scatter(self,theVersion):
