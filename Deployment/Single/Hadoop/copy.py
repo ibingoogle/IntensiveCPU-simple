@@ -69,7 +69,7 @@ def check_args(argv):
 
 def print_usage():
 	print "copy.sh - tool for" 
-	print "(1)copying configuration to HADOOP_HOME/conf"
+	print "(1)copying configuration to HADOOP_HOME/etc/hadoop"
 	print "(2)copying and extracting packaged .tgz to HADOOP_HOME"
 	print "usage:"
 	options="conf/all"
