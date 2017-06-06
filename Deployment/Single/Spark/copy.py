@@ -35,7 +35,7 @@ class CopyAll(CopyConf):
 	def set_pkg_path(self,theVersion):
 		self.pkg_src_path = theVersion.sparkpkgpath + "/*." + theVersion.suffix
 		self.pkg_dest_path = theVersion.modulepath
-		self.sparkdirname = theVersion.sparkpath
+		self.sparkpath = theVersion.sparkpath
 		self.sparkpkgname = theVersion.sparkpkgname
 
 	def print_pkg_path(self):
