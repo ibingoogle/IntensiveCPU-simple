@@ -8,6 +8,7 @@ class Configuration:
 	slaves = []
 
 	def __init__(self):
+		self.Loss_file = '/opt/modules/bigdl-master-angelps/executioninfo/lossfile.txt'
 		self.Size_file = '/opt/modules/bigdl-master-angelps/executioninfo/sizefile.txt'
 
 		self.Iter_file = '/opt/modules/bigdl-master-angelps/executioninfo/timefile.txt'
@@ -25,6 +26,7 @@ class Configuration:
 
 		self.Iter_Sparsity1_file_pre = '/opt/modules/bigdl-master-angelps/executioninfo/timefile_sparsity_larger_'
 		self.Iter_Sparsity2_file_pre = '/opt/modules/bigdl-master-angelps/executioninfo/timefile_sparsity_between_'
+		self.Iter_Sparsity3_file_pre = '/opt/modules/bigdl-master-angelps/executioninfo/timefile_sparsity_smaller_'
 
 		self.hostname = "hadoop0master"
 		#self.slaves = ["hadoop1slave1","hadoop1slave2","hadoop1slave3","hadoop1slave4","hadoop1slave5","hadoop1slave6"]

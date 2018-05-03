@@ -13,6 +13,7 @@ from IterationCompute1 import IterCompute1Time
 from IterationCompute2 import IterCompute2Time
 from ExecutorSparsity1 import ExecutorSparsityLarger
 from ExecutorSparsity2 import ExecutorSparsityBetween
+from ExecutorSparsity3 import ExecutorSparsitySmaller
 from Conf import Configuration
 
 class AppTime:
@@ -26,18 +27,28 @@ class AppTime:
 
 	ItersStages = []
 
+	# get weights
 	ItersStagesNet1 = []
 	ItersStagesNet1GB = []
 	ItersStagesNet1DC = []
 
+	# aggregate gradients
 	ItersStagesNet2 = []
 	ItersStagesNet2Reduce = []
 
+	# forward
 	ItersCompute1 = []
+	# backward
 	ItersCompute2 = []
 
+	# larger
 	Sparsity1 = {}
+	# between
 	Sparsity2 = {}
+	# smaller
+	Sparsity3 = {}
+
+	loss = []
 
 	executor_label = []
 
@@ -419,6 +430,7 @@ class AppTime:
 
 	def plot_ItersSparsity1_oneEmultiT(self, executor, thresholds, colors):
 		i = 0
+		plt.figure()
 		for thres in thresholds:
 			yvalue = self.Sparsity1[executor].sparsity[thres]
 			xvalue = range(len(yvalue))
@@ -426,7 +438,6 @@ class AppTime:
 			plt.plot(xvalue, yvalue, color = c)
 			i = i + 1
 		plt.ylim((0, 1))
-		plt.show()
 
 	def load_ItersSparsity2(self, Iter_Sparsity2_file_pre):
 		for executor in self.executor_label:
@@ -443,6 +454,7 @@ class AppTime:
 
 	def plot_ItersSparsity2_oneEmultiT(self, executor, thresholds, colors):
 		i = 0
+		plt.figure()
 		for thres in thresholds:
 			yvalue = self.Sparsity2[executor].sparsity[thres]
 			xvalue = range(len(yvalue))
@@ -450,7 +462,42 @@ class AppTime:
 			plt.plot(xvalue, yvalue, color = c)
 			i = i + 1
 		plt.ylim((0, 1))
-		plt.show()
+
+	def load_ItersSparsity3(self, Iter_Sparsity3_file_pre):
+		for executor in self.executor_label:
+			filename = Iter_Sparsity3_file_pre + executor + '.txt'
+			f = open(filename)
+			if not self.Sparsity3.has_key(executor):
+				theExecutorSparsitySmaller = ExecutorSparsitySmaller()
+				self.Sparsity3[executor] = theExecutorSparsitySmaller
+			for line in f.readlines():
+				self.Sparsity3[executor].add_sparsity(line)
+
+	def print_ItersSparsity3_oneEoneT(self, executor, threshold):
+		self.Sparsity3[executor].print_sparsity(threshold)
+
+	def plot_ItersSparsity3_oneEmultiT(self, executor, thresholds, colors):
+		i = 0
+		plt.figure()
+		for thres in thresholds:
+			yvalue = self.Sparsity3[executor].sparsity[thres]
+			xvalue = range(len(yvalue))
+			c = colors[i]
+			plt.plot(xvalue, yvalue, color = c)
+			i = i + 1
+		plt.ylim((0, 1))
+
+	def load_loss(self, lossfile):
+		filename = lossfile
+		f = open(filename)
+		for line in f.readlines():
+			self.loss.append(line)
+
+	def plot_loss(self):
+		yvalue = self.loss
+		xvalue = range(len(yvalue))
+		plt.figure()
+		plt.plot(xvalue, yvalue, color = 'b')
 
 if __name__ == "__main__":
 
@@ -497,12 +544,18 @@ if __name__ == "__main__":
 	#theAppTime.plot_ItersCompute12_norm(1)
 	#theAppTime.plot_ItersCompute12(1)
 
-	theAppTime.load_ItersSparsity1(theConf.Iter_Sparsity1_file_pre)
-	thresholds = ['1e-3f','1e-4f','1e-5f','1e-6f','1e-7f','1e-8f']
-	colors = ['r', 'b', 'g', 'y', 'k', 'w']
-	theAppTime.plot_ItersSparsity1_oneEmultiT("hadoop1slave12", thresholds, colors)
+	executor = 'hadoop1slave11'
+	thresholds = ['1e-2f','1e-3f','1e-4f','1e-5f','1e-6f','1e-7f','1e-8f']
+	colors = ['y','r', 'b', 'g', 'y', 'k', 'w']
+	#theAppTime.load_ItersSparsity1(theConf.Iter_Sparsity1_file_pre)
+	#theAppTime.plot_ItersSparsity1_oneEmultiT(executor, thresholds, colors)
 
-	theAppTime.load_ItersSparsity2(theConf.Iter_Sparsity2_file_pre)
-	thresholds = ['1e-3f','1e-4f','1e-5f','1e-6f','1e-7f','1e-8f']
-	colors = ['r', 'b', 'g', 'y', 'k', 'w']
-	theAppTime.plot_ItersSparsity2_oneEmultiT("hadoop1slave12", thresholds, colors)
+	#theAppTime.load_ItersSparsity2(theConf.Iter_Sparsity2_file_pre)
+	#theAppTime.plot_ItersSparsity2_oneEmultiT(executor, thresholds, colors)
+
+	theAppTime.load_ItersSparsity3(theConf.Iter_Sparsity3_file_pre)
+	theAppTime.plot_ItersSparsity3_oneEmultiT(executor, thresholds, colors)
+
+	theAppTime.load_loss(theConf.Loss_file)
+	theAppTime.plot_loss()
+	plt.show()
