@@ -11,6 +11,8 @@ from IterationStageNet2 import IterStageNet2Time
 from IterationStageNet2Reduce import IterStageNet2ReduceTime
 from IterationCompute1 import IterCompute1Time
 from IterationCompute2 import IterCompute2Time
+from ExecutorSparsity1 import ExecutorSparsityLarger
+from ExecutorSparsity2 import ExecutorSparsityBetween
 from Conf import Configuration
 
 class AppTime:
@@ -33,6 +35,9 @@ class AppTime:
 
 	ItersCompute1 = []
 	ItersCompute2 = []
+
+	Sparsity1 = {}
+	Sparsity2 = {}
 
 	executor_label = []
 
@@ -182,7 +187,7 @@ class AppTime:
 				time_start_end = time[blockId]
 				list_time_1.append(time_start_end[0])
 				list_time_2.append(time_start_end[1] - time_start_end[0])
-			plt.bar(range(len(list_time_1)), list_time_2, bottom = list_time_1, label='getblock', color = 'g')
+			plt.bar(range(len(list_time_1)), list_time_2, bottom = list_time_1, label='getweight', color = 'g')
 			plt.show()
 
 
@@ -259,7 +264,7 @@ class AppTime:
 				time_start_end = time[blockId]
 				list_time_1.append(time_start_end[0])
 				list_time_2.append(time_start_end[1] - time_start_end[0])
-			plt.bar(range(len(list_time_1)), list_time_2, bottom = list_time_1, label='getblock', color = 'y')
+			plt.bar(range(len(list_time_1)), list_time_2, bottom = list_time_1, label='decompress', color = 'y')
 			plt.show()
 
 	def load_ItersStagesNet2(self, Iter_Stage_Net2_file_pre):
@@ -298,7 +303,7 @@ class AppTime:
 				time_start_end = time[blockId]
 				list_time_1.append(time_start_end[0])
 				list_time_2.append(time_start_end[1] - time_start_end[0])
-			plt.bar(range(len(list_time_1)), list_time_2, bottom = list_time_1, label='getblock', color = 'b')
+			plt.bar(range(len(list_time_1)), list_time_2, bottom = list_time_1, label='getGradient', color = 'b')
 			plt.show()
 
 
@@ -383,6 +388,69 @@ class AppTime:
 			plt.ylim((0.1, 1.5))
 			plt.show()
 
+	def plot_ItersCompute12(self, num):
+		theIterCompute1time = self.ItersCompute1[num-1]
+		theIterCompute2time = self.ItersCompute2[num-1]
+		for executor in self.executor_label:
+			time_forward = theIterCompute1time.dict_time_forward[executor]
+			time_backward = theIterCompute2time.dict_time_backward[executor]
+			size = len(time_forward)
+			x = np.arange(size)
+			total_width, n = 0.4, 2
+			width = total_width / n
+			x = x - (total_width - width) / 2
+			plt.bar(x, time_forward, width = width, label='forward', color = 'r')
+			plt.bar(x + width, time_backward, width = width, label='backward', color = 'b')
+			plt.xlim((-1, 50))
+			plt.show()
+
+	def load_ItersSparsity1(self, Iter_Sparsity1_file_pre):
+		for executor in self.executor_label:
+			filename = Iter_Sparsity1_file_pre + executor + '.txt'
+			f = open(filename)
+			if not self.Sparsity1.has_key(executor):
+				theExecutorSparsityLarger = ExecutorSparsityLarger()
+				self.Sparsity1[executor] = theExecutorSparsityLarger
+			for line in f.readlines():
+				self.Sparsity1[executor].add_sparsity(line)
+
+	def print_ItersSparsity1_oneEoneT(self, executor, threshold):
+		self.Sparsity1[executor].print_sparsity(threshold)
+
+	def plot_ItersSparsity1_oneEmultiT(self, executor, thresholds, colors):
+		i = 0
+		for thres in thresholds:
+			yvalue = self.Sparsity1[executor].sparsity[thres]
+			xvalue = range(len(yvalue))
+			c = colors[i]
+			plt.plot(xvalue, yvalue, color = c)
+			i = i + 1
+		plt.ylim((0, 1))
+		plt.show()
+
+	def load_ItersSparsity2(self, Iter_Sparsity2_file_pre):
+		for executor in self.executor_label:
+			filename = Iter_Sparsity2_file_pre + executor + '.txt'
+			f = open(filename)
+			if not self.Sparsity2.has_key(executor):
+				theExecutorSparsityBetween = ExecutorSparsityBetween()
+				self.Sparsity2[executor] = theExecutorSparsityBetween
+			for line in f.readlines():
+				self.Sparsity2[executor].add_sparsity(line)
+
+	def print_ItersSparsity2_oneEoneT(self, executor, threshold):
+		self.Sparsity2[executor].print_sparsity(threshold)
+
+	def plot_ItersSparsity2_oneEmultiT(self, executor, thresholds, colors):
+		i = 0
+		for thres in thresholds:
+			yvalue = self.Sparsity2[executor].sparsity[thres]
+			xvalue = range(len(yvalue))
+			c = colors[i]
+			plt.plot(xvalue, yvalue, color = c)
+			i = i + 1
+		plt.ylim((0, 1))
+		plt.show()
 
 if __name__ == "__main__":
 
@@ -397,33 +465,44 @@ if __name__ == "__main__":
 
 	theAppTime.load_executor_label(theConf.Iter_Stage_file_pre, theConf.slaves)
 
-	theAppTime.load_ItersStages(theConf.Iter_Stage_file_pre)
+	#theAppTime.load_ItersStages(theConf.Iter_Stage_file_pre)
 	#theAppTime.print_ItersStages(1)
-	theAppTime.plot_ItersStages_stage1(1)
-	theAppTime.plot_ItersStages_stage2(1)
+	#theAppTime.plot_ItersStages_stage1(1)
+	#theAppTime.plot_ItersStages_stage2(1)
 
-	theAppTime.load_ItersStagesNet1(theConf.Iter_Stage_Net1_file_pre)
+	#theAppTime.load_ItersStagesNet1(theConf.Iter_Stage_Net1_file_pre)
 	#theAppTime.print_ItersStagesNet1(1)
 	#theAppTime.plot_ItersStagesNet1(1)
 
-	theAppTime.load_ItersStagesNet1GB(theConf.Iter_Stage_Net1_GB_file_pre)
+	#theAppTime.load_ItersStagesNet1GB(theConf.Iter_Stage_Net1_GB_file_pre)
 	#theAppTime.print_ItersStagesNet1GB(1)
 	#theAppTime.plot_ItersStagesNet1GB(1)
 
-	theAppTime.load_ItersStagesNet1DC(theConf.Iter_Stage_Net1_DC_file_pre)
+	#theAppTime.load_ItersStagesNet1DC(theConf.Iter_Stage_Net1_DC_file_pre)
 	#theAppTime.print_ItersStagesNet1DC(1)
 	#theAppTime.plot_ItersStagesNet1DC(1)
 
-	theAppTime.load_ItersStagesNet2(theConf.Iter_Stage_Net2_file_pre)
+	#theAppTime.load_ItersStagesNet2(theConf.Iter_Stage_Net2_file_pre)
 	#theAppTime.print_ItersStagesNet2(1)
 	#theAppTime.plot_ItersStagesNet2(1)
 
-	theAppTime.load_ItersStagesNet2Reduce(theConf.Iter_Stage_Net2_Reduce_file_pre)
+	#theAppTime.load_ItersStagesNet2Reduce(theConf.Iter_Stage_Net2_Reduce_file_pre)
 	#theAppTime.print_ItersStagesNet2Reduce(1)
 	#theAppTime.plot_ItersStagesNet2Reduce(1)
 
-	theAppTime.load_ItersCompute1(theConf.Iter_Compute1_file_pre)
+	#theAppTime.load_ItersCompute1(theConf.Iter_Compute1_file_pre)
 	#theAppTime.print_ItersCompute1(1)
-	theAppTime.load_ItersCompute2(theConf.Iter_Compute2_file_pre)
+	#theAppTime.load_ItersCompute2(theConf.Iter_Compute2_file_pre)
 	#theAppTime.print_ItersCompute2(1)
 	#theAppTime.plot_ItersCompute12_norm(1)
+	#theAppTime.plot_ItersCompute12(1)
+
+	theAppTime.load_ItersSparsity1(theConf.Iter_Sparsity1_file_pre)
+	thresholds = ['1e-3f','1e-4f','1e-5f','1e-6f','1e-7f','1e-8f']
+	colors = ['r', 'b', 'g', 'y', 'k', 'w']
+	theAppTime.plot_ItersSparsity1_oneEmultiT("hadoop1slave12", thresholds, colors)
+
+	theAppTime.load_ItersSparsity2(theConf.Iter_Sparsity2_file_pre)
+	thresholds = ['1e-3f','1e-4f','1e-5f','1e-6f','1e-7f','1e-8f']
+	colors = ['r', 'b', 'g', 'y', 'k', 'w']
+	theAppTime.plot_ItersSparsity2_oneEmultiT("hadoop1slave12", thresholds, colors)
